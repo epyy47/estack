@@ -1,0 +1,25 @@
+# Auto-detect text files, normalize line endings to LF on commit and checkout
+* text=auto eol=lf
+
+# Windows scripts must keep CRLF or they break
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+
+# pnpm lockfile: prevent corruption during local merge conflicts.
+# `merge=binary` makes git refuse to text-merge it (re-run `pnpm install` instead).
+# `linguist-generated` collapses it in PR diffs on GitHub.
+pnpm-lock.yaml  -diff  merge=binary  linguist-generated
+
+# Binary assets must not be line-end-normalized or they corrupt.
+# Pinning explicitly avoids relying on the `text=auto` heuristic.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary

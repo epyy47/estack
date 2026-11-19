@@ -1,0 +1,58 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline:
+    name: Lint, Check, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # `svelte-kit sync` needs PUBLIC_* vars from .env.
+      # .env.local is gitignored, so CI seeds from .env.example.
+      - name: Seed env for svelte-kit sync
+        run: cp .env.example .env
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prettier Check
+        run: pnpm lint:format
+
+      - name: ESLint
+        run: pnpm lint:eslint
+
+      - name: Svelte Check
+        run: pnpm check
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
